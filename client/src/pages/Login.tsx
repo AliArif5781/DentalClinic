@@ -14,10 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Lock, User } from "lucide-react";
-import { useEffect } from "react";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -30,17 +27,6 @@ export default function Login() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
-  const { data: authData } = useQuery<{ user?: any }>({
-    queryKey: ['/api/auth/me'],
-    retry: false,
-  });
-
-  useEffect(() => {
-    if (authData?.user) {
-      setLocation("/");
-    }
-  }, [authData, setLocation]);
-
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -49,34 +35,21 @@ export default function Login() {
     },
   });
 
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginFormData) => {
-      const res = await apiRequest("POST", "/api/auth/login", data);
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Login Successful",
-        description: "Welcome back, Doctor!",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-      setLocation("/");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Login Failed",
-        description: error.message || "Invalid username or password",
-        variant: "destructive",
-      });
-    },
-  });
-
   function onSubmit(data: LoginFormData) {
-    loginMutation.mutate(data);
-  }
+    // Show credentials in console without backend call
+    console.log("Doctor login credentials:", {
+      username: data.username,
+      password: data.password,
+    });
 
-  if (authData?.user) {
-    return null;
+    // Show success message
+    toast({
+      title: "Login Successful",
+      description: "Welcome back, Doctor!",
+    });
+
+    // Redirect to dashboard
+    setLocation("/");
   }
 
   return (
@@ -86,10 +59,16 @@ export default function Login() {
           <div className="w-16 h-16 bg-foreground rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-3xl text-background">🦷</span>
           </div>
-          <h1 className="text-3xl font-bold text-foreground" data-testid="text-login-title">
+          <h1
+            className="text-3xl font-bold text-foreground"
+            data-testid="text-login-title"
+          >
             Doctor Login
           </h1>
-          <p className="text-muted-foreground" data-testid="text-login-description">
+          <p
+            className="text-muted-foreground"
+            data-testid="text-login-description"
+          >
             Sign in to access the dental clinic dashboard
           </p>
         </div>
@@ -144,10 +123,9 @@ export default function Login() {
             <Button
               type="submit"
               className="w-full bg-foreground text-background hover:bg-foreground/90"
-              disabled={loginMutation.isPending}
               data-testid="button-login"
             >
-              {loginMutation.isPending ? "Signing in..." : "Sign In"}
+              Sign In
             </Button>
           </form>
         </Form>
