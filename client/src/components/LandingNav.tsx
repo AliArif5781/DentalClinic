@@ -1,8 +1,32 @@
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { LogOut, LogIn } from "lucide-react";
 
 export default function LandingNav() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+
+  const { data: authData } = useQuery<{ user?: any }>({
+    queryKey: ['/api/auth/me'],
+    retry: false,
+  });
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/auth/logout", {});
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+    },
+  });
 
   return (
     <nav className="border-b bg-background">
@@ -38,6 +62,29 @@ export default function LandingNav() {
             >
               Book an Appointment
             </Button>
+            
+            {authData?.user ? (
+              <Button 
+                variant="outline"
+                onClick={() => logoutMutation.mutate()}
+                disabled={logoutMutation.isPending}
+                className="gap-2"
+                data-testid="button-logout"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </Button>
+            ) : (
+              <Button 
+                variant="outline"
+                onClick={() => setLocation("/login")}
+                className="gap-2"
+                data-testid="button-login-nav"
+              >
+                <LogIn className="w-4 h-4" />
+                Doctor Login
+              </Button>
+            )}
           </div>
         </div>
       </div>

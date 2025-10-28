@@ -1,6 +1,12 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import session from "express-session";
+import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
+import { storage } from "./storage";
+import bcrypt from "bcryptjs";
+import type { User } from "@shared/schema";
 
 const app = express();
 
@@ -9,6 +15,57 @@ declare module 'http' {
     rawBody: unknown
   }
 }
+
+passport.use(
+  new LocalStrategy(async (username, password, done) => {
+    try {
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        return done(null, false, { message: "Invalid username or password" });
+      }
+
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return done(null, false, { message: "Invalid username or password" });
+      }
+
+      return done(null, user);
+    } catch (error) {
+      return done(error);
+    }
+  })
+);
+
+passport.serializeUser((user: any, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id: string, done) => {
+  try {
+    const user = await storage.getUser(id);
+    done(null, user);
+  } catch (error) {
+    done(error);
+  }
+});
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "dental-clinic-secret-key-change-in-production",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    },
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(express.json({
   verify: (req, _res, buf) => {
     req.rawBody = buf;
