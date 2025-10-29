@@ -21,7 +21,6 @@ const signupSchema = z
     firstName: z.string().min(1, "First name is required"),
     lastName: z.string().min(1, "Last name is required"),
     email: z.string().email("Please enter a valid email address"),
-    username: z.string().min(3, "Username must be at least 3 characters"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
@@ -42,45 +41,39 @@ export default function Signup() {
       firstName: "",
       lastName: "",
       email: "",
-      username: "",
       password: "",
       confirmPassword: "",
     },
   });
 
   function onSubmit(data: SignupFormData) {
-    // Show registration data in console without backend call
     console.log("Doctor registration data:", {
-      FirstName: data.firstName,
-      LastName: data.lastName,
-      Email: data.email,
-      Password: data.password,
-      // confirmPassword: undefined, // Remove confirmPassword from logged data
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      password: data.password,
     });
-    console.log("doctor register end");
 
-    // Show success message
     toast({
       title: "Registration Successful",
       description: "Your account has been created successfully!",
     });
 
-    // Redirect to login page
-    // setLocation("/");
+    setLocation("/login");
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
-      <Card className="w-full max-w-lg p-8 space-y-6">
+      <Card className="w-full max-w-md p-8 space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 bg-foreground rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl text-background">🦷</span>
+          <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl text-primary-foreground">🦷</span>
           </div>
           <h1
             className="text-3xl font-bold text-foreground"
             data-testid="text-signup-title"
           >
-            Dental Clinic Sign Up
+            Doctor Sign Up
           </h1>
           <p
             className="text-muted-foreground"
@@ -122,11 +115,15 @@ export default function Signup() {
                   <FormItem>
                     <FormLabel>Last Name</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Last name"
-                        {...field}
-                        data-testid="input-last-name"
-                      />
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Last name"
+                          className="pl-10"
+                          {...field}
+                          data-testid="input-last-name"
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -156,50 +153,6 @@ export default function Signup() {
                 </FormItem>
               )}
             />
-
-            {/* <FormField
-              control={form.control}
-              name="licenseNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Medical License</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Stethoscope className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Enter your license number"
-                        className="pl-10"
-                        {...field}
-                        data-testid="input-license"
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            /> */}
-
-            {/* <FormField
-              control={form.control}
-              name="clinicName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Clinic Name</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Enter your clinic name"
-                        className="pl-10"
-                        {...field}
-                        data-testid="input-clinic"
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            /> */}
 
             <FormField
               control={form.control}
@@ -249,7 +202,7 @@ export default function Signup() {
 
             <Button
               type="submit"
-              className="w-full bg-foreground text-background hover:bg-foreground/90"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
               data-testid="button-signup"
             >
               Create Account
@@ -257,15 +210,15 @@ export default function Signup() {
           </form>
         </Form>
 
-        <div className="text-center text-sm text-black">
-          <p data-testid="text-login-redirect">
+        <div className="text-center text-sm">
+          <p data-testid="text-login-redirect" className="text-muted-foreground">
             Already have an account?{" "}
             <button
-              className="p-0 h-auto font-bold ml-1 hover:underline transition-all duration-300 ease-in-out"
               onClick={() => setLocation("/login")}
-              data-testid="button-go-to-login"
+              className="text-primary font-semibold hover:underline transition-all"
+              data-testid="link-login"
             >
-              login
+              Sign In
             </button>
           </p>
         </div>

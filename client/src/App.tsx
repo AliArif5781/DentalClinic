@@ -5,8 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import Landing from "@/pages/Landing";
 import Booking from "@/pages/Booking";
 import Login from "@/pages/Login";
+import Signup from "@/pages/Signup";
 import NotFound from "@/pages/not-found";
-import Signup from "./pages/Signup";
 
 function Router() {
   return (
