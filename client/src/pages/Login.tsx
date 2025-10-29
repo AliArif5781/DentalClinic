@@ -56,14 +56,14 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
       <Card className="w-full max-w-md p-8 space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 bg-foreground rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl text-background">🦷</span>
+          <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl text-primary">🦷</span>
           </div>
           <h1
             className="text-3xl font-bold text-foreground"
             data-testid="text-login-title"
           >
-            Doctor Login
+            Dental Clinic Login
           </h1>
           <p
             className="text-muted-foreground"

@@ -73,7 +73,7 @@ export default function Signup() {
             className="text-3xl font-bold text-foreground"
             data-testid="text-signup-title"
           >
-            Doctor Sign Up
+            Dental Clinic Sign Up
           </h1>
           <p
             className="text-muted-foreground"
@@ -211,7 +211,10 @@ export default function Signup() {
         </Form>
 
         <div className="text-center text-sm">
-          <p data-testid="text-login-redirect" className="text-muted-foreground">
+          <p
+            data-testid="text-login-redirect"
+            className="text-muted-foreground"
+          >
             Already have an account?{" "}
             <button
               onClick={() => setLocation("/login")}
