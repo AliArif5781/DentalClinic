@@ -15,6 +15,8 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { Lock, User, Mail } from "lucide-react";
+import { saveDoctorSignup } from "@/lib/firebase";
+import AuthNav from "@/components/AuthNav";
 
 const signupSchema = z
   .object({
@@ -46,7 +48,7 @@ export default function Signup() {
     },
   });
 
-  function onSubmit(data: SignupFormData) {
+  async function onSubmit(data: SignupFormData) {
     console.log("Doctor registration data:", {
       firstName: data.firstName,
       lastName: data.lastName,
@@ -54,17 +56,33 @@ export default function Signup() {
       password: data.password,
     });
 
-    toast({
-      title: "Registration Successful",
-      description: "Your account has been created successfully!",
+    const result = await saveDoctorSignup({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      password: data.password,
     });
 
-    setLocation("/login");
+    if (result.success) {
+      toast({
+        title: "Registration Successful",
+        description: "Your account has been created and saved to Firebase!",
+      });
+      setLocation("/login");
+    } else {
+      toast({
+        title: "Registration Recorded",
+        description: "Registration saved locally.",
+        variant: "destructive",
+      });
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
-      <Card className="w-full max-w-md p-8 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      <AuthNav />
+      <div className="flex items-center justify-center px-4 py-8">
+        <Card className="w-full max-w-md p-8 space-y-6">
         <div className="text-center space-y-2">
           <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-3xl text-primary-foreground">🦷</span>
@@ -226,6 +244,7 @@ export default function Signup() {
           </p>
         </div>
       </Card>
+      </div>
     </div>
   );
 }

@@ -25,6 +25,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { saveAppointment } from "@/lib/firebase";
 
 const appointmentFormSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -62,8 +63,8 @@ export default function Booking() {
     },
   });
 
-  function onSubmit(data: AppointmentFormData) {
-    console.log("Appointment Form Data:", {
+  async function onSubmit(data: AppointmentFormData) {
+    const appointmentData = {
       patient: {
         firstName: data.firstName,
         lastName: data.lastName,
@@ -73,18 +74,30 @@ export default function Booking() {
         preferredContactTime: data.preferredContactTime,
       },
       appointment: {
-        appointmentDate: data.appointmentDate,
+        appointmentDate: data.appointmentDate.toISOString(),
         appointmentTime: data.appointmentTime,
         treatmentType: data.treatmentType,
         bookingMethod: data.bookingMethod,
       }
-    });
+    };
+
+    console.log("Appointment Form Data:", appointmentData);
     
-    toast({
-      title: "Appointment Submitted",
-      description: `Appointment for ${data.firstName} ${data.lastName} on ${format(data.appointmentDate, "PPP")} at ${data.appointmentTime}`,
-    });
-    form.reset();
+    const result = await saveAppointment(appointmentData);
+
+    if (result.success) {
+      toast({
+        title: "Appointment Saved",
+        description: `Appointment for ${data.firstName} ${data.lastName} on ${format(data.appointmentDate, "PPP")} at ${data.appointmentTime} saved to Firebase!`,
+      });
+      form.reset();
+    } else {
+      toast({
+        title: "Appointment Recorded",
+        description: "Appointment saved locally.",
+        variant: "destructive",
+      });
+    }
   }
 
   return (

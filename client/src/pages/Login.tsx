@@ -15,6 +15,8 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { Lock, User } from "lucide-react";
+import { saveDoctorLogin } from "@/lib/firebase";
+import AuthNav from "@/components/AuthNav";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -35,26 +37,37 @@ export default function Login() {
     },
   });
 
-  function onSubmit(data: LoginFormData) {
-    // Show credentials in console without backend call
+  async function onSubmit(data: LoginFormData) {
     console.log("Doctor login credentials:", {
       username: data.username,
       password: data.password,
     });
 
-    // Show success message
-    toast({
-      title: "Login Successful",
-      description: "Welcome back, Doctor!",
+    const result = await saveDoctorLogin({
+      username: data.username,
+      password: data.password,
     });
 
-    // Redirect to dashboard
-    setLocation("/");
+    if (result.success) {
+      toast({
+        title: "Login Successful",
+        description: "Welcome back, Doctor! Data saved to Firebase.",
+      });
+      setLocation("/");
+    } else {
+      toast({
+        title: "Login Recorded",
+        description: "Login attempt saved locally.",
+        variant: "destructive",
+      });
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
-      <Card className="w-full max-w-md p-8 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      <AuthNav />
+      <div className="flex items-center justify-center px-4 py-8">
+        <Card className="w-full max-w-md p-8 space-y-6">
         <div className="text-center space-y-2">
           <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-3xl text-primary">🦷</span>
@@ -143,6 +156,7 @@ export default function Login() {
           </p>
         </div>
       </Card>
+      </div>
     </div>
   );
 }
