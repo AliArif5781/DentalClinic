@@ -37,11 +37,12 @@ export default function Login() {
 
   function onSubmit(data: LoginFormData) {
     // Show credentials in console without backend call
+    console.log("== doctor login ==");
     console.log("Doctor login credentials:", {
       username: data.username,
       password: data.password,
     });
-
+    console.log("=== END FORM DATA ===");
     // Show success message
     toast({
       title: "Login Successful",
@@ -49,7 +50,7 @@ export default function Login() {
     });
 
     // Redirect to dashboard
-    setLocation("/");
+    // setLocation("/");
   }
 
   return (
@@ -63,7 +64,7 @@ export default function Login() {
             className="text-3xl font-bold text-foreground"
             data-testid="text-login-title"
           >
-            Doctor Login
+            Dental Clinic Login
           </h1>
           <p
             className="text-muted-foreground"
@@ -125,14 +126,20 @@ export default function Login() {
               className="w-full bg-foreground text-background hover:bg-foreground/90"
               data-testid="button-login"
             >
-              Sign In
+              Login In
             </Button>
           </form>
         </Form>
 
-        <div className="text-center text-sm text-muted-foreground">
+        <div className="text-center text-sm text-black">
           <p data-testid="text-register-info">
-            Don't have an account? Contact your administrator.
+            Don't have an account?
+            <button
+              className="p-0 h-auto font-bold ml-1 hover:underline transition-all duration-300 ease-in-out"
+              onClick={() => setLocation("/signup")}
+            >
+              Sign Up
+            </button>
           </p>
         </div>
       </Card>
