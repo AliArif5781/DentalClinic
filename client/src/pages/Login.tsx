@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { Lock, User } from "lucide-react";
+import { Lock, Mail } from "lucide-react";
 import { saveDoctorLogin } from "@/lib/firebase";
 import AuthNav from "@/components/AuthNav";
 import { useState } from "react";
@@ -48,7 +48,7 @@ export default function Login() {
     });
 
     const result = await saveDoctorLogin({
-        email: data.email,
+      email: data.email,
       password: data.password,
     });
 
@@ -62,7 +62,7 @@ export default function Login() {
       toast({
         title: "Login Failed",
         description:
-          result.error || "Invalid username or password. Please try again.",
+          result.error || "Invalid email or password. Please try again.",
         variant: "destructive",
       });
     }
@@ -100,15 +100,16 @@ export default function Login() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                          placeholder="Enter your username"
+                          type="email"
+                          placeholder="Enter your email"
                           className="pl-10"
                           {...field}
-                          data-testid="input-username"
+                          data-testid="input-email"
                           disabled={isLoading}
                         />
                       </div>

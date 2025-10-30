@@ -32,7 +32,7 @@ export interface DoctorSignupData {
 }
 
 export interface DoctorLoginData {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -99,7 +99,7 @@ export const saveDoctorLogin = async (data: DoctorLoginData) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        username: data.username,
+        email: data.email,
         password: data.password,
       }),
     });
