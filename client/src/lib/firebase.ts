@@ -1,5 +1,10 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -13,7 +18,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-export const DOCTOR_AUTH_URL = "https://foveal-yuriko-uratic.ngrok-free.dev/dental-clinic-project-a8512/us-central1/addDoctorAuthentication";
+export const DOCTOR_AUTH_URL =
+  "https://foveal-yuriko-uratic.ngrok-free.dev/dental-clinic-project-a8512/us-central1/addDoctorAuthentication";
 
 export interface DoctorSignupData {
   firstName: string;
@@ -60,17 +66,21 @@ export const saveDoctorSignup = async (data: DoctorSignupData) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: "Authentication failed" }));
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: "Authentication failed" }));
       console.error("Doctor authentication error:", errorData);
-      return { 
-        success: false, 
-        error: errorData.message || `Authentication failed with status ${response.status}` 
+      return {
+        success: false,
+        error:
+          errorData.message ||
+          `Authentication failed with status ${response.status}`,
       };
     }
 
     const result = await response.json();
     console.log("Doctor authenticated successfully:", result);
-    
+
     await addDoc(collection(db, "doctorSignups"), {
       ...data,
       authResult: result,

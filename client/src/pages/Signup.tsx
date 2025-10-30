@@ -17,6 +17,7 @@ import { useLocation } from "wouter";
 import { Lock, User, Mail } from "lucide-react";
 import { saveDoctorSignup } from "@/lib/firebase";
 import AuthNav from "@/components/AuthNav";
+import { useState } from "react";
 
 const signupSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -30,6 +31,7 @@ type SignupFormData = z.infer<typeof signupSchema>;
 export default function Signup() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
@@ -42,6 +44,8 @@ export default function Signup() {
   });
 
   async function onSubmit(data: SignupFormData) {
+    setIsLoading(true);
+
     console.log("Doctor registration data:", {
       firstName: data.firstName,
       lastName: data.lastName,
@@ -58,17 +62,23 @@ export default function Signup() {
 
     if (result.success) {
       toast({
-        title: "Registration Successful",
-        description: "Your account has been authenticated and created successfully!",
+        title: "Registration Successful!",
+        description:
+          "Your account has been created successfully. You can now login.",
+        variant: "default",
       });
-      setLocation("/login");
+      setLocation("/");
     } else {
       toast({
         title: "Registration Failed",
-        description: result.error || "Unable to complete registration. Please try again.",
+        description:
+          result.error ||
+          "There was an error creating your account. Please try again.",
         variant: "destructive",
       });
     }
+
+    setIsLoading(false);
   }
 
   return (
@@ -111,6 +121,7 @@ export default function Signup() {
                             className="pl-10"
                             {...field}
                             data-testid="input-first-name"
+                            disabled={isLoading}
                           />
                         </div>
                       </FormControl>
@@ -133,6 +144,7 @@ export default function Signup() {
                             className="pl-10"
                             {...field}
                             data-testid="input-last-name"
+                            disabled={isLoading}
                           />
                         </div>
                       </FormControl>
@@ -157,6 +169,7 @@ export default function Signup() {
                           className="pl-10"
                           {...field}
                           data-testid="input-email"
+                          disabled={isLoading}
                         />
                       </div>
                     </FormControl>
@@ -180,6 +193,7 @@ export default function Signup() {
                           className="pl-10"
                           {...field}
                           data-testid="input-password"
+                          disabled={isLoading}
                         />
                       </div>
                     </FormControl>
@@ -192,8 +206,9 @@ export default function Signup() {
                 type="submit"
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                 data-testid="button-signup"
+                disabled={isLoading}
               >
-                Create Account
+                {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
           </Form>
@@ -208,6 +223,7 @@ export default function Signup() {
                 onClick={() => setLocation("/login")}
                 className="text-primary font-semibold hover:underline transition-all"
                 data-testid="link-login"
+                disabled={isLoading}
               >
                 Login
               </button>
