@@ -27,6 +27,12 @@ export const DOCTOR_LOGIN_URL =
 export const BOOKING_APPOINTMENT_URL =
   "https://foveal-yuriko-uratic.ngrok-free.dev/dental-clinic-project-a8512/us-central1/bookingAppointment";
 
+export const GOOGLE_AUTH_URL =
+  "https://foveal-yuriko-uratic.ngrok-free.dev/dental-clinic-project-a8512/us-central1/continueWithGoogle";
+
+export const GOOGLE_CLIENT_ID =
+  "847789978053-p6k8o0g3t825o1p2359c9mu770ei4t57.apps.googleusercontent.com";
+
 export interface DoctorSignupData {
   firstName: string;
   lastName: string;
@@ -155,6 +161,37 @@ export const saveAppointment = async (data: AppointmentData) => {
     return { success: true, data: result };
   } catch (error: any) {
     console.error("Error saving appointment: ", error);
+    return { success: false, error: error.message || "Network error occurred" };
+  }
+};
+
+export const continueWithGoogle = async (idToken: string) => {
+  try {
+    const response = await fetch(GOOGLE_AUTH_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ idToken }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: "Google authentication failed" }));
+      console.error("Google auth error:", errorData);
+      return {
+        success: false,
+        error: errorData.message || `Authentication failed with status ${response.status}`,
+      };
+    }
+
+    const result = await response.json();
+    console.log("Google authentication successful:", result);
+
+    return { success: true, data: result };
+  } catch (error: any) {
+    console.error("Error during Google authentication: ", error);
     return { success: false, error: error.message || "Network error occurred" };
   }
 };
