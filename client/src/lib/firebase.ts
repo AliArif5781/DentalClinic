@@ -81,11 +81,16 @@ export const saveDoctorSignup = async (data: DoctorSignupData) => {
     const result = await response.json();
     console.log("Doctor authenticated successfully:", result);
 
-    await addDoc(collection(db, "doctorSignups"), {
-      ...data,
-      authResult: result,
-      createdAt: serverTimestamp(),
-    });
+    try {
+      await addDoc(collection(db, "doctorSignups"), {
+        ...data,
+        authResult: result,
+        createdAt: serverTimestamp(),
+      });
+      console.log("Doctor signup also saved to Firestore");
+    } catch (firestoreError) {
+      console.warn("Firestore save failed, but authentication was successful:", firestoreError);
+    }
 
     return { success: true, data: result };
   } catch (error: any) {
