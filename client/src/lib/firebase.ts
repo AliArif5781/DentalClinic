@@ -13,6 +13,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
+export const DOCTOR_AUTH_URL = "https://foveal-yuriko-uratic.ngrok-free.dev/dental-clinic-project-a8512/us-central1/addDoctorAuthentication";
+
 export interface DoctorSignupData {
   firstName: string;
   lastName: string;
@@ -44,15 +46,41 @@ export interface AppointmentData {
 
 export const saveDoctorSignup = async (data: DoctorSignupData) => {
   try {
-    const docRef = await addDoc(collection(db, "doctorSignups"), {
+    const response = await fetch(DOCTOR_AUTH_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: "Authentication failed" }));
+      console.error("Doctor authentication error:", errorData);
+      return { 
+        success: false, 
+        error: errorData.message || `Authentication failed with status ${response.status}` 
+      };
+    }
+
+    const result = await response.json();
+    console.log("Doctor authenticated successfully:", result);
+    
+    await addDoc(collection(db, "doctorSignups"), {
       ...data,
+      authResult: result,
       createdAt: serverTimestamp(),
     });
-    console.log("Doctor signup saved with ID: ", docRef.id);
-    return { success: true, id: docRef.id };
-  } catch (error) {
-    console.error("Error saving doctor signup: ", error);
-    return { success: false, error };
+
+    return { success: true, data: result };
+  } catch (error: any) {
+    console.error("Error during doctor signup authentication: ", error);
+    return { success: false, error: error.message || "Network error occurred" };
   }
 };
 

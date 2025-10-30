@@ -59,13 +59,13 @@ export default function Signup() {
     if (result.success) {
       toast({
         title: "Registration Successful",
-        description: "Your account has been created and saved to Firebase!",
+        description: "Your account has been authenticated and created successfully!",
       });
       setLocation("/login");
     } else {
       toast({
-        title: "Registration Recorded",
-        description: "Registration saved locally.",
+        title: "Registration Failed",
+        description: result.error || "Unable to complete registration. Please try again.",
         variant: "destructive",
       });
     }
