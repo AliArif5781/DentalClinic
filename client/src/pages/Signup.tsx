@@ -18,18 +18,12 @@ import { Lock, User, Mail } from "lucide-react";
 import { saveDoctorSignup } from "@/lib/firebase";
 import AuthNav from "@/components/AuthNav";
 
-const signupSchema = z
-  .object({
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
-    email: z.string().email("Please enter a valid email address"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+const signupSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
 
 type SignupFormData = z.infer<typeof signupSchema>;
 
@@ -44,7 +38,6 @@ export default function Signup() {
       lastName: "",
       email: "",
       password: "",
-      confirmPassword: "",
     },
   });
 
@@ -83,167 +76,144 @@ export default function Signup() {
       <AuthNav />
       <div className="flex items-center justify-center px-4 py-8">
         <Card className="w-full max-w-md p-8 space-y-6">
-        <div className="text-center space-y-2">
-          <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl text-primary-foreground">🦷</span>
-          </div>
-          <h1
-            className="text-3xl font-bold text-foreground"
-            data-testid="text-signup-title"
-          >
-            Dental Clinic Sign Up
-          </h1>
-          <p
-            className="text-muted-foreground"
-            data-testid="text-signup-description"
-          >
-            Create your dental clinic account
-          </p>
-        </div>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Name</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="First name"
-                          className="pl-10"
-                          {...field}
-                          data-testid="input-first-name"
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Last name"
-                          className="pl-10"
-                          {...field}
-                          data-testid="input-last-name"
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <div className="text-center space-y-2">
+            <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl text-primary-foreground">🦷</span>
             </div>
-
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="email"
-                        placeholder="Enter your email"
-                        className="pl-10"
-                        {...field}
-                        data-testid="input-email"
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="password"
-                        placeholder="Create a password"
-                        className="pl-10"
-                        {...field}
-                        data-testid="input-password"
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="password"
-                        placeholder="Confirm your password"
-                        className="pl-10"
-                        {...field}
-                        data-testid="input-confirm-password"
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button
-              type="submit"
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-              data-testid="button-signup"
+            <h1
+              className="text-3xl font-bold text-foreground"
+              data-testid="text-signup-title"
             >
-              Create Account
-            </Button>
-          </form>
-        </Form>
-
-        <div className="text-center text-sm">
-          <p
-            data-testid="text-login-redirect"
-            className="text-muted-foreground"
-          >
-            Already have an account?{" "}
-            <button
-              onClick={() => setLocation("/login")}
-              className="text-primary font-semibold hover:underline transition-all"
-              data-testid="link-login"
+              Dental Clinic Sign Up
+            </h1>
+            <p
+              className="text-muted-foreground"
+              data-testid="text-signup-description"
             >
-              Sign In
-            </button>
-          </p>
-        </div>
-      </Card>
+              Create your dental clinic account
+            </p>
+          </div>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="First name"
+                            className="pl-10"
+                            {...field}
+                            data-testid="input-first-name"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Last name"
+                            className="pl-10"
+                            {...field}
+                            data-testid="input-last-name"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="email"
+                          placeholder="Enter your email"
+                          className="pl-10"
+                          {...field}
+                          data-testid="input-email"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="password"
+                          placeholder="Create a password"
+                          className="pl-10"
+                          {...field}
+                          data-testid="input-password"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button
+                type="submit"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                data-testid="button-signup"
+              >
+                Create Account
+              </Button>
+            </form>
+          </Form>
+
+          <div className="text-center text-sm">
+            <p
+              data-testid="text-login-redirect"
+              className="text-muted-foreground"
+            >
+              Already have an account?{" "}
+              <button
+                onClick={() => setLocation("/login")}
+                className="text-primary font-semibold hover:underline transition-all"
+                data-testid="link-login"
+              >
+                Login
+              </button>
+            </p>
+          </div>
+        </Card>
       </div>
     </div>
   );
