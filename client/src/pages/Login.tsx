@@ -17,6 +17,7 @@ import { useLocation } from "wouter";
 import { Lock, User } from "lucide-react";
 import { saveDoctorLogin } from "@/lib/firebase";
 import AuthNav from "@/components/AuthNav";
+import { useState } from "react";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -28,6 +29,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function Login() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -38,6 +40,8 @@ export default function Login() {
   });
 
   async function onSubmit(data: LoginFormData) {
+    setIsLoading(true);
+
     console.log("Doctor login credentials:", {
       username: data.username,
       password: data.password,
@@ -51,16 +55,18 @@ export default function Login() {
     if (result.success) {
       toast({
         title: "Login Successful",
-        description: "Welcome back, Doctor! Data saved to Firebase.",
+        description: "Welcome back, Doctor!",
       });
       setLocation("/");
     } else {
       toast({
-        title: "Login Recorded",
-        description: "Login attempt saved locally.",
+        title: "Login Failed",
+        description: result.error || "Invalid username or password. Please try again.",
         variant: "destructive",
       });
     }
+
+    setIsLoading(false);
   }
 
   return (
@@ -102,6 +108,7 @@ export default function Login() {
                         className="pl-10"
                         {...field}
                         data-testid="input-username"
+                        disabled={isLoading}
                       />
                     </div>
                   </FormControl>
@@ -125,6 +132,7 @@ export default function Login() {
                         className="pl-10"
                         {...field}
                         data-testid="input-password"
+                        disabled={isLoading}
                       />
                     </div>
                   </FormControl>
@@ -137,8 +145,9 @@ export default function Login() {
               type="submit"
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
               data-testid="button-login"
+              disabled={isLoading}
             >
-              Sign In
+              {isLoading ? "Signing In..." : "Sign In"}
             </Button>
           </form>
         </Form>
@@ -150,6 +159,7 @@ export default function Login() {
               onClick={() => setLocation("/signup")}
               className="text-primary font-semibold hover:underline transition-all"
               data-testid="link-signup"
+              disabled={isLoading}
             >
               Sign Up
             </button>
