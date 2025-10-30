@@ -24,6 +24,9 @@ export const DOCTOR_AUTH_URL =
 export const DOCTOR_LOGIN_URL =
   "https://foveal-yuriko-uratic.ngrok-free.dev/dental-clinic-project-a8512/us-central1/doctorLogin";
 
+export const BOOKING_APPOINTMENT_URL =
+  "https://foveal-yuriko-uratic.ngrok-free.dev/dental-clinic-project-a8512/us-central1/bookingAppointment";
+
 export interface DoctorSignupData {
   firstName: string;
   lastName: string;
@@ -127,14 +130,31 @@ export const saveDoctorLogin = async (data: DoctorLoginData) => {
 
 export const saveAppointment = async (data: AppointmentData) => {
   try {
-    const docRef = await addDoc(collection(db, "appointments"), {
-      ...data,
-      createdAt: serverTimestamp(),
+    const response = await fetch(BOOKING_APPOINTMENT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
     });
-    console.log("Appointment saved with ID: ", docRef.id);
-    return { success: true, id: docRef.id };
-  } catch (error) {
+
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: "Booking failed" }));
+      console.error("Appointment booking error:", errorData);
+      return {
+        success: false,
+        error: errorData.message || `Booking failed with status ${response.status}`,
+      };
+    }
+
+    const result = await response.json();
+    console.log("Appointment booked successfully:", result);
+
+    return { success: true, data: result };
+  } catch (error: any) {
     console.error("Error saving appointment: ", error);
-    return { success: false, error };
+    return { success: false, error: error.message || "Network error occurred" };
   }
 };

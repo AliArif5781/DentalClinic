@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, ArrowLeft } from "lucide-react";
+import { CalendarIcon, ArrowLeft, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -87,14 +87,17 @@ export default function Booking() {
 
     if (result.success) {
       toast({
-        title: "Appointment Saved",
-        description: `Appointment for ${data.firstName} ${data.lastName} on ${format(data.appointmentDate, "PPP")} at ${data.appointmentTime} saved to Firebase!`,
+        title: "Appointment Booked Successfully!",
+        description: `Appointment for ${data.firstName} ${data.lastName} on ${format(data.appointmentDate, "PPP")} at ${data.appointmentTime} has been confirmed.`,
       });
       form.reset();
+      setTimeout(() => {
+        setLocation("/");
+      }, 1500);
     } else {
       toast({
-        title: "Appointment Recorded",
-        description: "Appointment saved locally.",
+        title: "Booking Failed",
+        description: result.error || "Unable to book appointment. Please try again.",
         variant: "destructive",
       });
     }
@@ -372,8 +375,16 @@ export default function Booking() {
                   size="lg"
                   className="w-full bg-foreground text-background hover:bg-foreground/90" 
                   data-testid="button-submit"
+                  disabled={form.formState.isSubmitting}
                 >
-                  Submit Appointment Request
+                  {form.formState.isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit Appointment Request"
+                  )}
                 </Button>
               </div>
 
