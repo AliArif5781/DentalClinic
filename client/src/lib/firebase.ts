@@ -13,6 +13,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   GoogleAuthProvider,
+  signInWithPopup,
   signInWithCredential,
   onAuthStateChanged,
   User as FirebaseUser,
@@ -177,12 +178,16 @@ export const saveAppointment = async (data: AppointmentData) => {
   }
 };
 
-export const continueWithGoogle = async (idToken: string) => {
+export const signInWithGoogle = async () => {
   try {
-    const credential = GoogleAuthProvider.credential(idToken);
-    const userCredential = await signInWithCredential(auth, credential);
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
     
+    const userCredential = await signInWithPopup(auth, provider);
     const user = userCredential.user;
+    
     const displayNameParts = user.displayName?.split(" ") || ["", ""];
     const firstName = displayNameParts[0] || "";
     const lastName = displayNameParts.slice(1).join(" ") || "";
@@ -216,6 +221,10 @@ export const continueWithGoogle = async (idToken: string) => {
       errorMessage = "Sign-in popup was closed. Please try again.";
     } else if (error.code === "auth/cancelled-popup-request") {
       errorMessage = "Only one popup request is allowed at a time.";
+    } else if (error.code === "auth/popup-blocked") {
+      errorMessage = "Popup was blocked. Please allow popups for this site.";
+    } else if (error.code === "auth/account-exists-with-different-credential") {
+      errorMessage = "An account already exists with this email using a different sign-in method.";
     } else if (error.message) {
       errorMessage = error.message;
     }
@@ -223,6 +232,8 @@ export const continueWithGoogle = async (idToken: string) => {
     return { success: false, error: errorMessage };
   }
 };
+
+export const continueWithGoogle = signInWithGoogle;
 
 export const logoutDoctor = async () => {
   try {

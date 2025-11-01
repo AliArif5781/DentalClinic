@@ -15,9 +15,10 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { Lock, Mail, Loader2 } from "lucide-react";
-import { saveDoctorLogin, continueWithGoogle, GOOGLE_CLIENT_ID } from "@/lib/firebase";
+import { saveDoctorLogin, signInWithGoogle } from "@/lib/firebase";
 import AuthNav from "@/components/AuthNav";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { FcGoogle } from "react-icons/fc";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -71,53 +72,10 @@ export default function Login() {
     setIsLoading(false);
   }
 
-  useEffect(() => {
-    const initializeGoogleSignIn = () => {
-      if (window.google?.accounts?.id && GOOGLE_CLIENT_ID) {
-        try {
-          window.google.accounts.id.initialize({
-            client_id: GOOGLE_CLIENT_ID,
-            callback: handleGoogleSignIn,
-            auto_select: false,
-          });
-          
-          const buttonDiv = document.getElementById('google-login-button');
-          if (buttonDiv) {
-            window.google.accounts.id.renderButton(buttonDiv, {
-              theme: 'outline',
-              size: 'large',
-              width: buttonDiv.offsetWidth,
-              text: 'continue_with',
-            });
-          }
-        } catch (error) {
-          console.error('Error initializing Google Sign-In:', error);
-        }
-      }
-    };
-
-    const timer = setTimeout(() => {
-      if (window.google?.accounts?.id) {
-        initializeGoogleSignIn();
-      } else {
-        const checkGoogleLoaded = setInterval(() => {
-          if (window.google?.accounts?.id) {
-            clearInterval(checkGoogleLoaded);
-            initializeGoogleSignIn();
-          }
-        }, 100);
-        
-        setTimeout(() => clearInterval(checkGoogleLoaded), 5000);
-      }
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  async function handleGoogleSignIn(response: any) {
+  async function handleGoogleSignIn() {
     setIsGoogleLoading(true);
     
-    const result = await continueWithGoogle(response.credential);
+    const result = await signInWithGoogle();
 
     if (result.success) {
       toast({
@@ -230,11 +188,21 @@ export default function Login() {
             </div>
           </div>
 
-          <div 
-            id="google-login-button" 
-            className="w-full flex justify-center"
-            data-testid="google-login-button"
-          ></div>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full flex items-center justify-center gap-2"
+            onClick={handleGoogleSignIn}
+            disabled={isLoading || isGoogleLoading}
+            data-testid="button-google-login"
+          >
+            {isGoogleLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <FcGoogle className="h-5 w-5" />
+            )}
+            {isGoogleLoading ? "Signing in..." : "Continue with Google"}
+          </Button>
 
           <div className="text-center text-sm">
             <p
