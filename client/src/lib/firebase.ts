@@ -149,32 +149,35 @@ export const saveDoctorLogin = async (data: DoctorLoginData) => {
 
 export const saveAppointment = async (data: AppointmentData) => {
   try {
-    const response = await fetch(BOOKING_APPOINTMENT_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    const appointmentData = {
+      ...data.patient,
+      ...data.appointment,
+      status: "pending",
+      createdAt: serverTimestamp(),
+    };
 
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: "Booking failed" }));
-      console.error("Appointment booking error:", errorData);
-      return {
-        success: false,
-        error: errorData.message || `Booking failed with status ${response.status}`,
-      };
-    }
+    const docRef = await addDoc(collection(db, "appointments"), appointmentData);
+    
+    console.log("Appointment booked successfully with ID:", docRef.id);
 
-    const result = await response.json();
-    console.log("Appointment booked successfully:", result);
-
-    return { success: true, data: result };
+    return { 
+      success: true, 
+      data: { 
+        id: docRef.id,
+        ...appointmentData 
+      } 
+    };
   } catch (error: any) {
     console.error("Error saving appointment: ", error);
-    return { success: false, error: error.message || "Network error occurred" };
+    
+    let errorMessage = "Failed to book appointment";
+    if (error.code === "permission-denied") {
+      errorMessage = "Permission denied. Please check Firestore security rules.";
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    return { success: false, error: errorMessage };
   }
 };
 
