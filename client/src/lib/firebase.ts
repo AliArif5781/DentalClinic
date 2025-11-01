@@ -3,8 +3,20 @@ import {
   getFirestore,
   collection,
   addDoc,
+  setDoc,
+  doc,
   serverTimestamp,
 } from "firebase/firestore";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  GoogleAuthProvider,
+  signInWithCredential,
+  onAuthStateChanged,
+  User as FirebaseUser,
+} from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -17,18 +29,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
-
-export const DOCTOR_AUTH_URL =
-  "https://foveal-yuriko-uratic.ngrok-free.dev/dental-clinic-project-a8512/us-central1/addDoctorAuthentication";
-
-export const DOCTOR_LOGIN_URL =
-  "https://foveal-yuriko-uratic.ngrok-free.dev/dental-clinic-project-a8512/us-central1/doctorLogin";
+export const auth = getAuth(app);
 
 export const BOOKING_APPOINTMENT_URL =
   "https://foveal-yuriko-uratic.ngrok-free.dev/dental-clinic-project-a8512/us-central1/bookingAppointment";
-
-export const GOOGLE_AUTH_URL =
-  "https://foveal-yuriko-uratic.ngrok-free.dev/dental-clinic-project-a8512/us-central1/continueWithGoogle";
 
 export const GOOGLE_CLIENT_ID =
   "847789978053-p6k8o0g3t825o1p2359c9mu770ei4t57.apps.googleusercontent.com";
@@ -64,73 +68,81 @@ export interface AppointmentData {
 
 export const saveDoctorSignup = async (data: DoctorSignupData) => {
   try {
-    const response = await fetch(DOCTOR_AUTH_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        password: data.password,
-      }),
-    });
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      data.email,
+      data.password
+    );
 
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: "Authentication failed" }));
-      console.error("Doctor authentication error:", errorData);
-      return {
-        success: false,
-        error:
-          errorData.message ||
-          `Authentication failed with status ${response.status}`,
-      };
-    }
+    const doctorData = {
+      id: userCredential.user.uid,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      role: "doctor",
+      createdAt: serverTimestamp(),
+    };
 
-    const result = await response.json();
-    console.log("Doctor authenticated successfully:", result);
+    await setDoc(doc(db, "doctors", userCredential.user.uid), doctorData);
 
-    return { success: true, data: result };
+    console.log("Doctor authenticated successfully:", doctorData);
+
+    return { success: true, data: { uid: userCredential.user.uid, ...doctorData } };
   } catch (error: any) {
     console.error("Error during doctor signup authentication: ", error);
-    return { success: false, error: error.message || "Network error occurred" };
+    
+    let errorMessage = "Network error occurred";
+    if (error.code === "auth/email-already-in-use") {
+      errorMessage = "This email is already registered. Please login instead.";
+    } else if (error.code === "auth/weak-password") {
+      errorMessage = "Password should be at least 6 characters.";
+    } else if (error.code === "auth/invalid-email") {
+      errorMessage = "Please enter a valid email address.";
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    return { success: false, error: errorMessage };
   }
 };
 
 export const saveDoctorLogin = async (data: DoctorLoginData) => {
   try {
-    const response = await fetch(DOCTOR_LOGIN_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: data.email,
-        password: data.password,
-      }),
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      data.email,
+      data.password
+    );
+
+    console.log("Doctor logged in successfully:", {
+      uid: userCredential.user.uid,
+      email: userCredential.user.email,
     });
 
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: "Login failed" }));
-      console.error("Doctor login error:", errorData);
-      return {
-        success: false,
-        error: errorData.message || `Login failed with status ${response.status}`,
-      };
-    }
-
-    const result = await response.json();
-    console.log("Doctor logged in successfully:", result);
-
-    return { success: true, data: result };
+    return { 
+      success: true, 
+      data: {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+      }
+    };
   } catch (error: any) {
     console.error("Error during doctor login: ", error);
-    return { success: false, error: error.message || "Network error occurred" };
+    
+    let errorMessage = "Network error occurred";
+    if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
+      errorMessage = "Invalid email or password. Please try again.";
+    } else if (error.code === "auth/invalid-email") {
+      errorMessage = "Please enter a valid email address.";
+    } else if (error.code === "auth/user-disabled") {
+      errorMessage = "This account has been disabled.";
+    } else if (error.code === "auth/invalid-credential") {
+      errorMessage = "Invalid email or password. Please try again.";
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    return { success: false, error: errorMessage };
   }
 };
 
@@ -167,31 +179,62 @@ export const saveAppointment = async (data: AppointmentData) => {
 
 export const continueWithGoogle = async (idToken: string) => {
   try {
-    const response = await fetch(GOOGLE_AUTH_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ idToken }),
-    });
+    const credential = GoogleAuthProvider.credential(idToken);
+    const userCredential = await signInWithCredential(auth, credential);
+    
+    const user = userCredential.user;
+    const displayNameParts = user.displayName?.split(" ") || ["", ""];
+    const firstName = displayNameParts[0] || "";
+    const lastName = displayNameParts.slice(1).join(" ") || "";
 
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: "Google authentication failed" }));
-      console.error("Google auth error:", errorData);
-      return {
-        success: false,
-        error: errorData.message || `Authentication failed with status ${response.status}`,
-      };
-    }
+    const doctorData = {
+      id: user.uid,
+      firstName: firstName,
+      lastName: lastName,
+      email: user.email || "",
+      role: "doctor",
+      createdAt: serverTimestamp(),
+    };
 
-    const result = await response.json();
-    console.log("Google authentication successful:", result);
+    await setDoc(doc(db, "doctors", user.uid), doctorData, { merge: true });
 
-    return { success: true, data: result };
+    console.log("Google authentication successful:", doctorData);
+
+    return { 
+      success: true, 
+      data: {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+      }
+    };
   } catch (error: any) {
     console.error("Error during Google authentication: ", error);
-    return { success: false, error: error.message || "Network error occurred" };
+    
+    let errorMessage = "Google authentication failed";
+    if (error.code === "auth/popup-closed-by-user") {
+      errorMessage = "Sign-in popup was closed. Please try again.";
+    } else if (error.code === "auth/cancelled-popup-request") {
+      errorMessage = "Only one popup request is allowed at a time.";
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    return { success: false, error: errorMessage };
   }
+};
+
+export const logoutDoctor = async () => {
+  try {
+    await signOut(auth);
+    console.log("Doctor logged out successfully");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error during logout: ", error);
+    return { success: false, error: error.message || "Logout failed" };
+  }
+};
+
+export const onAuthStateChange = (callback: (user: FirebaseUser | null) => void) => {
+  return onAuthStateChanged(auth, callback);
 };
