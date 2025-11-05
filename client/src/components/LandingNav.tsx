@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut, LogIn } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function LandingNav() {
   const [, setLocation] = useLocation();
@@ -39,7 +40,7 @@ export default function LandingNav() {
             <span className="text-xl font-bold">Lume Dental</span>
           </div>
 
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6">
             <button className="text-foreground hover:text-foreground/70 transition-colors font-medium" data-testid="link-services">
               Services
             </button>
@@ -55,36 +56,41 @@ export default function LandingNav() {
             <button className="text-foreground hover:text-foreground/70 transition-colors font-medium" data-testid="link-contacts">
               Contacts
             </button>
-            <Button 
-              onClick={() => setLocation("/booking")} 
-              className="bg-foreground text-background hover:bg-foreground/90"
-              data-testid="button-book-nav"
-            >
-              Book an Appointment
-            </Button>
             
-            {authData?.user ? (
+            <div className="flex items-center gap-3 ml-2">
+              <ThemeToggle />
+              
               <Button 
-                variant="outline"
-                onClick={() => logoutMutation.mutate()}
-                disabled={logoutMutation.isPending}
-                className="gap-2"
-                data-testid="button-logout"
+                onClick={() => setLocation("/booking")} 
+                className="bg-foreground text-background hover:bg-foreground/90"
+                data-testid="button-book-nav"
               >
-                <LogOut className="w-4 h-4" />
-                Logout
+                Book an Appointment
               </Button>
-            ) : (
-              <Button 
-                variant="outline"
-                onClick={() => setLocation("/login")}
-                className="gap-2"
-                data-testid="button-login-nav"
-              >
-                <LogIn className="w-4 h-4" />
-                Doctor Login
-              </Button>
-            )}
+              
+              {authData?.user ? (
+                <Button 
+                  variant="outline"
+                  onClick={() => logoutMutation.mutate()}
+                  disabled={logoutMutation.isPending}
+                  className="gap-2"
+                  data-testid="button-logout"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </Button>
+              ) : (
+                <Button 
+                  variant="outline"
+                  onClick={() => setLocation("/login")}
+                  className="gap-2"
+                  data-testid="button-login-nav"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Doctor Login
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
