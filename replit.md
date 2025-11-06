@@ -72,6 +72,11 @@ The dual authentication system exists to support both doctor login (Express/Pass
 
 **Asset Management**: Static images stored in `attached_assets/generated_images/` for dental clinic photography, team photos, and facility images.
 
+**Automation Integration**: 
+- Make.com webhook integration for appointment notifications
+- SendGrid for email delivery (24-hour appointment reminders)
+- Webhook triggered on successful appointment booking with complete patient and appointment data
+
 ### Architectural Decisions
 
 **Monorepo Structure**: Client and server code coexist in a single repository with shared TypeScript types and schemas in `/shared` directory, enabling type safety across the full stack.

@@ -88,7 +88,7 @@ export default function Booking() {
     if (result.success) {
       try {
         const webhookUrl = import.meta.env.VITE_MAKE_WEBHOOK_URL;
-        if (webhookUrl) {
+        if (webhookUrl && result.data) {
           await fetch(webhookUrl, {
             method: 'POST',
             headers: {
