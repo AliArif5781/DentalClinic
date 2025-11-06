@@ -86,6 +86,26 @@ export default function Booking() {
     const result = await saveAppointment(appointmentData);
 
     if (result.success) {
+      try {
+        const webhookUrl = import.meta.env.VITE_MAKE_WEBHOOK_URL;
+        if (webhookUrl) {
+          await fetch(webhookUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              ...appointmentData,
+              appointmentId: result.data.id,
+              createdAt: new Date().toISOString(),
+            }),
+          });
+          console.log("Appointment data sent to Make.com webhook");
+        }
+      } catch (webhookError) {
+        console.error("Failed to send to Make.com webhook:", webhookError);
+      }
+
       toast({
         title: "Appointment Booked Successfully!",
         description: `Appointment for ${data.firstName} ${data.lastName} on ${format(data.appointmentDate, "PPP")} at ${data.appointmentTime} has been confirmed.`,
