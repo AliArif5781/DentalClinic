@@ -25,7 +25,8 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { saveAppointment } from "@/lib/firebase";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 const appointmentFormSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -63,64 +64,49 @@ export default function Booking() {
     },
   });
 
-  async function onSubmit(data: AppointmentFormData) {
-    const appointmentData = {
-      patient: {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phone: data.phone,
-        email: data.email,
-        preferredChannel: data.preferredChannel,
-        preferredContactTime: data.preferredContactTime,
-      },
-      appointment: {
-        appointmentDate: data.appointmentDate.toISOString(),
-        appointmentTime: data.appointmentTime,
-        treatmentType: data.treatmentType,
-        bookingMethod: data.bookingMethod,
-      }
-    };
-
-    console.log("Appointment Form Data:", appointmentData);
-    
-    const result = await saveAppointment(appointmentData);
-
-    if (result.success) {
-      try {
-        const webhookUrl = import.meta.env.VITE_MAKE_WEBHOOK_URL;
-        if (webhookUrl && result.data) {
-          await fetch(webhookUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              ...appointmentData,
-              appointmentId: result.data.id,
-              createdAt: new Date().toISOString(),
-            }),
-          });
-          console.log("Appointment data sent to Make.com webhook");
-        }
-      } catch (webhookError) {
-        console.error("Failed to send to Make.com webhook:", webhookError);
-      }
-
+  const bookAppointmentMutation = useMutation({
+    mutationFn: async (appointmentData: any) => {
+      return await apiRequest('POST', '/api/appointments', appointmentData);
+    },
+    onSuccess: (data: any) => {
+      console.log("✅ Appointment booked successfully:", data);
+      console.log("📧 Confirmation email will be sent via SendGrid through Make.com");
+      
       toast({
         title: "Appointment Booked Successfully!",
-        description: `Appointment for ${data.firstName} ${data.lastName} on ${format(data.appointmentDate, "PPP")} at ${data.appointmentTime} has been confirmed.`,
+        description: `Your appointment has been confirmed. You'll receive a confirmation email shortly.`,
       });
       form.reset();
       setTimeout(() => {
         setLocation("/");
       }, 1500);
-    } else {
+    },
+    onError: (error: any) => {
+      console.error("❌ Appointment booking failed:", error);
       toast({
         title: "Booking Failed",
-        description: result.error || "Unable to book appointment. Please try again.",
+        description: error.message || "Unable to book appointment. Please try again.",
         variant: "destructive",
       });
-    }
+    },
+  });
+
+  async function onSubmit(data: AppointmentFormData) {
+    const appointmentData = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone,
+      email: data.email,
+      preferredChannel: data.preferredChannel,
+      preferredContactTime: data.preferredContactTime,
+      appointmentDate: data.appointmentDate.toISOString(),
+      appointmentTime: data.appointmentTime,
+      treatmentType: data.treatmentType,
+      bookingMethod: data.bookingMethod,
+    };
+
+    console.log("📋 Submitting appointment:", appointmentData);
+    bookAppointmentMutation.mutate(appointmentData);
   }
 
   return (

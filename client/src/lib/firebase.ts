@@ -28,9 +28,20 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-export const auth = getAuth(app);
+let app: any = null;
+let db: any = null;
+let auth: any = null;
+
+function initializeFirebase() {
+  if (!app && import.meta.env.VITE_FIREBASE_API_KEY) {
+    app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    auth = getAuth(app);
+  }
+  return { app, db, auth };
+}
+
+export { db, auth };
 
 export const BOOKING_APPOINTMENT_URL =
   "https://foveal-yuriko-uratic.ngrok-free.dev/dental-clinic-project-a8512/us-central1/bookingAppointment";
@@ -250,5 +261,9 @@ export const logoutDoctor = async () => {
 };
 
 export const onAuthStateChange = (callback: (user: FirebaseUser | null) => void) => {
-  return onAuthStateChanged(auth, callback);
+  if (auth) {
+    return onAuthStateChanged(auth, callback);
+  }
+  callback(null);
+  return () => {};
 };
