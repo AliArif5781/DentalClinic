@@ -1,7 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { eq } from "drizzle-orm";
-import { type User, type InsertUser, users } from "@shared/schema";
+import { type User, type InsertUser, users, type Appointment, type InsertAppointment } from "@shared/schema";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL must be set");
@@ -14,23 +14,45 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  createAppointment(appointment: InsertAppointment): Promise<Appointment>;
+  getAppointments(): Promise<Appointment[]>;
 }
 
-export class DbStorage implements IStorage {
+export class MemStorage implements IStorage {
+  private appointments: Map<string, Appointment> = new Map();
+  private users: Map<string, User> = new Map();
+
   async getUser(id: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.id, id));
-    return result[0];
+    return this.users.get(id);
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.username, username));
-    return result[0];
+    return Array.from(this.users.values()).find(u => u.username === username);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const result = await db.insert(users).values(insertUser).returning();
-    return result[0];
+    const user: User = {
+      id: crypto.randomUUID(),
+      ...insertUser,
+    };
+    this.users.set(user.id, user);
+    return user;
+  }
+
+  async createAppointment(insertAppointment: InsertAppointment): Promise<Appointment> {
+    const appointment: Appointment = {
+      id: crypto.randomUUID(),
+      ...insertAppointment,
+      status: "pending",
+      createdAt: new Date(),
+    };
+    this.appointments.set(appointment.id, appointment);
+    return appointment;
+  }
+
+  async getAppointments(): Promise<Appointment[]> {
+    return Array.from(this.appointments.values());
   }
 }
 
-export const storage = new DbStorage();
+export const storage = new MemStorage();
