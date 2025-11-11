@@ -187,6 +187,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/appointments/upcoming", async (req, res) => {
+    try {
+      const fromDate = req.query.from as string | undefined;
+      const appointments = await storage.getUpcomingAppointments(fromDate);
+      
+      console.log(`📅 Fetched ${appointments.length} upcoming appointments`);
+      
+      res.json({
+        success: true,
+        count: appointments.length,
+        appointments: appointments.map(apt => ({
+          id: apt.id,
+          firstName: apt.firstName,
+          lastName: apt.lastName,
+          email: apt.email,
+          phone: apt.phone,
+          appointmentDate: apt.appointmentDate,
+          appointmentTime: apt.appointmentTime,
+          treatmentType: apt.treatmentType,
+          status: apt.status,
+          preferredChannel: apt.preferredChannel,
+        })),
+      });
+    } catch (error: any) {
+      console.error("❌ Error fetching upcoming appointments:", error.message);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch upcoming appointments",
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

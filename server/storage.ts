@@ -16,6 +16,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   createAppointment(appointment: InsertAppointment): Promise<Appointment>;
   getAppointments(): Promise<Appointment[]>;
+  getUpcomingAppointments(fromDate?: string): Promise<Appointment[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -52,6 +53,17 @@ export class MemStorage implements IStorage {
 
   async getAppointments(): Promise<Appointment[]> {
     return Array.from(this.appointments.values());
+  }
+
+  async getUpcomingAppointments(fromDate?: string): Promise<Appointment[]> {
+    const today = fromDate || new Date().toISOString().split('T')[0];
+    return Array.from(this.appointments.values())
+      .filter(apt => apt.appointmentDate >= today)
+      .sort((a, b) => {
+        const dateCompare = a.appointmentDate.localeCompare(b.appointmentDate);
+        if (dateCompare !== 0) return dateCompare;
+        return a.appointmentTime.localeCompare(b.appointmentTime);
+      });
   }
 }
 
